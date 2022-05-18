@@ -31,9 +31,4 @@ class FirstController extends AbstractController
         $res = $int1 * $int2;
         return new Response("<h1>$res</h1>");
     }
-    #[Route('{maVar}', name: 'test.order.var')]
-    public function testOrderRoute($maVar)
-    {
-        return new Response("<html><body>$maVar</body></html>");
-    }
 }
