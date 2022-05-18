@@ -7,9 +7,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+#[Route('/todo')]
 class ToDoController extends AbstractController
 {
-    #[Route('/todo', name: 'app_to_do')]
+    #[Route('/', name: 'todo')]
     public function index(Request $request): Response
     {
         $session = $request->getSession();
@@ -27,7 +28,8 @@ class ToDoController extends AbstractController
             'controller_name' => 'ToDoController',
         ]);
     }
-    #[Route('/todo/add/{name}/{content})', name: 'todo.add')]
+    #[Route('/add/{name}/{content}', name: 'todo.add',
+    defaults:['content'=>'sf6'])]
     public function addToDo(Request $request, $name, $content)
     {
         $session = $request->getSession();
@@ -38,10 +40,11 @@ class ToDoController extends AbstractController
             } else {
                 $todos[$name] = $content;
                 $this->addFlash('success', "L'élément $content a été ajouter");
+                $session->set('todos',$todos);
             }
         } else {
             $this->addFlash('error', "La liste n'a pas encore été initialisé");
         }
-        return $this->redirectToRoute('todo.add');
+        return $this->redirectToRoute('todo');
     }
 }
