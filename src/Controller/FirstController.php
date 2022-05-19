@@ -10,7 +10,11 @@ class FirstController extends AbstractController
 {
 
 
-
+    #[Route('/template', name: 'template')]
+    public function template()
+    {
+        return $this->render('template.html.twig');
+    }
     #[Route('/first', name: 'app_first')]
     public function index(): Response
     {
