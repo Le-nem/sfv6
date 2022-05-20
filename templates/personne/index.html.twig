@@ -10,6 +10,7 @@
     <th><a href="{{ path('all_personne',{'sortby':'firstname'})}}"> Firstname</a></th>
     <th><a href="{{ path('all_personne',{'sortby':'name'})}}"> Name</a></th>
     <th><a href="{{ path('all_personne',{'sortby':'age'})}}"> Age</a></th>
+    <th>Suppr</th>
     </tr>
 
     {% for personne in personnes %}
@@ -17,11 +18,32 @@
     <td>{{ personne.firstname }}</td>
     <td>{{ personne.name }}</td>
     <td>{{ personne.age }}</td>
+    <td> <a href=" {{ path('delete_personne', {id: personne.id} )}} ">X</a> </td>
     </tr>
 
     {% endfor %}
 
 </table>
+
+{% if isPaginated %}
+
+<div class="row">
+<nav aria-label="col Page navigation example">
+  <ul class="pagination">
+    {% if page != 1 %}
+    <li class="page-item"><a class="page-link" href="{{path('all_personne', {page: page - 1 , nbr : nbr} )}}">Previous</a></li>
+    {% endif %}
+    {% for i in range (1,nbrPage) %}
+    <li class="page-item"><a class="page-link" href=" {{path('all_personne', {page: i , nbr : nbr} )}} ">{{i}}</a></li>
+    {% endfor %}
+        {% if page != nbrPage %}
+    <li class="page-item"><a class="page-link" href="{{path('all_personne', {page: page + 1 , nbr : nbr} )}}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+</div>
+
+{% endif %}
 
 
 {% endblock %}
