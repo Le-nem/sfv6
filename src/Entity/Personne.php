@@ -3,13 +3,17 @@
 namespace App\Entity;
 
 use App\Repository\PersonneRepository;
+use App\Traits\TimeStampTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PersonneRepository::class)]
+#[ORM\HasLifecycleCallbacks()]
 class Personne
 {
+
+    use TimeStampTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -158,17 +162,13 @@ class Personne
 
         return $this;
     }
-    /**
-     * @ORM\PrePersist()
-     */
+    #[ORM\PrePersist]
     public function onPrePersist()
     {
         $this->createdAt = new \DateTime();
-        $this->updatedAt = new \DateTime();
+        $this->updateAt = new \DateTime();
     }
-    /**
-     * @ORM\PreUpdate()
-     */
+    #[ORM\PreUpdate]
     public function onPreUpdate()
     {
         $this->updatedAt = new \DateTime();
