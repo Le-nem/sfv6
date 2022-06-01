@@ -7,6 +7,7 @@ use App\Form\PersonneType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -50,14 +51,27 @@ class PersonneController extends AbstractController
         ]);
     }
 
-    #[Route('/add', name: 'add_personne')]
-    public function addPersonne(ManagerRegistry $doctrine): Response
+    #[Route('/edit/{id?0}', name: 'edit_personne')]
+    public function addPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request): Response
     {
-        $entityManager = $doctrine->getManager();
-        $personne = new Personne();
-        $form = $this->createForm(PersonneType::class, $personne);
+        if (!$personne) {
+            $personne = new Personne();
+        }
 
-        return $this->render('personne/add-personne.html.twig', ['form' => $form->createView()]);
+
+        $form = $this->createForm(PersonneType::class, $personne);
+        $form->remove('createdAt');
+        $form->remove('updateAt');
+        $form->handleRequest($request);
+        if ($form->isSubmitted()) {
+            $entityManager = $doctrine->getManager();
+            $entityManager->persist($personne);
+            $entityManager->flush();
+            $this->addFlash('succes', $personne->getName() . "a été a jouter");
+            $this->redirectToRoute('all_personne');
+        } else {
+            return $this->render('personne/add-personne.html.twig', ['form' => $form->createView()]);
+        }
     }
     #[Route('/delete/{id}', name: 'delete_personne')]
     public function deletePersonne(Personne $personne = null, ManagerRegistry $doctrine): RedirectResponse
