@@ -7,6 +7,8 @@ use App\Traits\TimeStampTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: PersonneRepository::class)]
 #[ORM\HasLifecycleCallbacks()]
@@ -20,6 +22,8 @@ class Personne
     private $id;
 
     #[ORM\Column(type: 'string', length: 50)]
+    #[NotBlank(message: "Veuillez renseigner ce champ")]
+    #[Length(min: 4 , minMessage: 'Au moins 4 characteres')]
     private $firstname;
 
     #[ORM\Column(type: 'string', length: 50)]
@@ -43,6 +47,9 @@ class Personne
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private $updateAt;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $image;
 
     public function __construct()
     {
@@ -172,5 +179,17 @@ class Personne
     public function onPreUpdate()
     {
         $this->updatedAt = new \DateTime();
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
+
+        return $this;
     }
 }

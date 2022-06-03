@@ -4,22 +4,41 @@ namespace App\Controller;
 
 use App\Entity\Personne;
 use App\Form\PersonneType;
+use App\Service\Helpers;
+use App\Service\PdfService;
+use App\Service\UploaderService;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
 
 #[Route('/personne')]
 class PersonneController extends AbstractController
 {
+
+    public function __construct(private LoggerInterface $logger, private Helpers $helper)
+    {}
+
+
     #[Route('/', name: 'index_personne')]
     public function index(ManagerRegistry $doctrine): Response
     {
         $repository = $doctrine->getRepository(Personne::class);
         $personnes = $repository->findAll();
         return $this->render('personne/index.html.twig', ['personnes' => $personnes, 'isPaginated' => true]);
+    }
+
+    #[Route('/pdf/{id<\d+>}',name:'pdf_personne')]
+    public function generatePdfPersonne(Personne $personne=null, PdfService $pdf)
+    {
+        $html=$this->render('personne/detail.html.twig', ['personne' => $personne]);
+        $pdf->showPdfFile($html);
     }
 
     #[Route('/{id<\d+>}', name: 'detail_personne')]
@@ -37,6 +56,7 @@ class PersonneController extends AbstractController
     #[Route('/all/{page?1}/{nbr?10}/{sortby?id}/{sort?asc}', name: 'all_personne')]
     public function all(ManagerRegistry $doctrine, $nbr, $page, $sortby, $sort): Response
     {
+        echo($this->helper->SayCc());
         $repository = $doctrine->getRepository(Personne::class);
         $nbPersonne = $repository->count([]);
         $nbrPage = ceil($nbPersonne / $nbr);
@@ -52,27 +72,31 @@ class PersonneController extends AbstractController
     }
 
     #[Route('/edit/{id?0}', name: 'edit_personne')]
-    public function addPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request): Response
+    public function addPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request, UploaderService $upload): Response
     {
         if (!$personne) {
             $personne = new Personne();
         }
-
-
         $form = $this->createForm(PersonneType::class, $personne);
         $form->remove('createdAt');
         $form->remove('updateAt');
         $form->handleRequest($request);
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
+            $image = $form->get('image')->getData();
+            if ($image) {
+                $directory = $this->getParameter('personne_directory');
+                $personne->setImage($upload->uploadFile($image,$directory));
+            }
             $entityManager = $doctrine->getManager();
             $entityManager->persist($personne);
             $entityManager->flush();
-            $this->addFlash('succes', $personne->getName() . "a été a jouter");
-            $this->redirectToRoute('all_personne');
+            $this->addFlash('success', $personne->getName() . " a été a editer");
+            return $this->redirectToRoute('all_personne');
         } else {
             return $this->render('personne/add-personne.html.twig', ['form' => $form->createView()]);
         }
     }
+
     #[Route('/delete/{id}', name: 'delete_personne')]
     public function deletePersonne(Personne $personne = null, ManagerRegistry $doctrine): RedirectResponse
     {
