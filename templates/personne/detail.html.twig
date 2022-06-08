@@ -3,7 +3,10 @@
 
 
 <div class="alert alert-success">
-{{ personne.firstname }}{{ personne.name }}{{ personne.age }}
+{{ personne.firstname }} {{ personne.name }} a {{ personne.age }} ans
+    {% if app.user %}
+    <p>Crée par : {{ app.user.username }}</p>
+    {% endif %}
 </div>
     
 {% endblock %}

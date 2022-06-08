@@ -9,6 +9,7 @@ use App\Service\PdfService;
 use App\Service\UploaderService;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -53,7 +54,7 @@ class PersonneController extends AbstractController
         return $this->render('personne/detail.html.twig', ['personne' => $personne, 'isPaginated' => true]);
     }
 
-    #[Route('/all/{page?1}/{nbr?10}/{sortby?id}/{sort?asc}', name: 'all_personne')]
+    #[Route('/all/{page?1}/{nbr?10}/{sortby?id}/{sort?asc}', name: 'all_personne'),IsGranted('ROLE_USER')]
     public function all(ManagerRegistry $doctrine, $nbr, $page, $sortby, $sort): Response
     {
         echo($this->helper->SayCc());
@@ -74,6 +75,7 @@ class PersonneController extends AbstractController
     #[Route('/edit/{id?0}', name: 'edit_personne')]
     public function addPersonne(Personne $personne = null, ManagerRegistry $doctrine, Request $request, UploaderService $upload): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         if (!$personne) {
             $personne = new Personne();
         }
@@ -87,6 +89,7 @@ class PersonneController extends AbstractController
                 $directory = $this->getParameter('personne_directory');
                 $personne->setImage($upload->uploadFile($image,$directory));
             }
+            $personne->setCreatedBy($this->getUser());
             $entityManager = $doctrine->getManager();
             $entityManager->persist($personne);
             $entityManager->flush();
